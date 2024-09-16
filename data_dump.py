@@ -9,7 +9,7 @@ collection_name = "Netflix"
 file_path = r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\netflix_dataset.csv"
 
 if __name__=="__main__":git 
-   #reading dataset as df
+   #reading dataset as dataframe
    df= pd.read_csv(file_path)
    print(f"rows{df.shape[0]} columns{df.shape[1]}\n*4")
    #client = pymongo.MongoClient("mongodb+srv://yourusername:yourpass@cluster0.owfzau8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")

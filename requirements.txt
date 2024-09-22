@@ -13,4 +13,4 @@ streamlit-folium
 folium
 altair
 plotly
-
+wordcloud

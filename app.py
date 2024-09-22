@@ -15,18 +15,7 @@ df = pd.read_csv(r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\ne
 df_copy = df.copy()
 
 # Set page configuration for title and layout
-st.set_page_config(page_title="Netflix Data Visualization Dashboard", layout="wide")
-
-st.markdown(
-    """
-    <style>
-    .st-folium {
-        margin-bottom: 0;  /* Remove margin below the map */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.set_page_config(page_title="Netflix Data Dashboard", layout="wide")
 
 # Load Netflix logo
 logo = Image.open(r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\pngwing.com.png")
@@ -94,7 +83,7 @@ st.markdown(
 
 # Your Streamlit app content goes here
 content_type = st.sidebar.selectbox("Select Content Type:", ["Movies", "TV Shows"])
-selected_plot_type = st.sidebar.selectbox("Select Plot Type:", ["Top Genres", "Content Type Distribution" , "Country"])
+selected_plot_type = st.sidebar.selectbox("Select Plot Type:", ["Top Genres", "Content Type Distribution", "Country"])
 
 # Data preparation
 show_type = df_copy["type"].value_counts()
@@ -134,7 +123,6 @@ def get_longitude(country):
         "Spain": -3.7038,
     }
     return longitudes.get(country, 0)
-
 
 if content_type == "Movies":
     df_filtered = df_copy[df_copy['type'] == 'Movie']
@@ -190,7 +178,6 @@ elif selected_plot_type == "Content Type Distribution":
         
         st.altair_chart(fig_content_type, use_container_width=True)
 
-
 # Create a row with two columns for country plots
 col3, col4 = st.columns(2)
 
@@ -238,9 +225,9 @@ if selected_plot_type == "Country":
 
 # Interactive Map for Countries with Pie Chart
 st.subheader(f"Map of Netflix {content_type} Content by Country")
-map_col= st.columns(1)  # Adjust column sizes as needed
+map_col, pie_col = st.columns([2, 1])  # Adjust column sizes as needed
 
-with map_col[0]:
+with map_col:
     m = folium.Map(location=[20.0, 0.0], zoom_start=2, tiles='CartoDB positron')
     marker_cluster = MarkerCluster().add_to(m)
 
@@ -251,7 +238,7 @@ with map_col[0]:
             icon=folium.Icon(color='blue', icon='info-sign')
         ).add_to(marker_cluster)
 
-    st_folium(m, width=900, height=400)  # Adjusted width for better fit
+    st_folium(m, width=700, height=500)  # Adjusted width for better fit
 
 # Count plot for Ratings using Plotly
 rating = df_copy['rating'].value_counts().reset_index()
@@ -261,188 +248,15 @@ fig_count = px.bar(
     rating,
     x='Rating',
     y='Frequency',
+    title="Rating Distribution of Netflix Content",
     color='Frequency',
-    title="Movies and Shows Rating",
-    color_continuous_scale=px.colors.sequential.Blues,
-    labels={"Rating": "Rating on Netflix", "Frequency": "Frequency"}
+    color_continuous_scale=px.colors.sequential.Reds
 )
-
 fig_count.update_layout(
-    xaxis_title="Rating on Netflix",
-    yaxis_title="Frequency",
-    title_font=dict(size=20, color='black'),
-    xaxis_tickangle=-45
+    plot_bgcolor='white',
+    paper_bgcolor='white',
+    font=dict(color='black'),
+    title_font=dict(size=16, family='Arial, sans-serif', color='black')
 )
 
-# Pie chart for Ratings distribution using Plotly
-fig_pie = px.pie(
-    rating,
-    names='Rating',
-    values='Frequency',
-    title="Top Ratings Distribution",
-    color='Rating',
-    color_discrete_sequence=px.colors.sequential.Plasma
-)
-
-# Show plots in columns
-st.subheader("Ratings Distribution")
-col5, col6 = st.columns(2)
-
-with col5:
-    st.plotly_chart(fig_count)
-
-with col6:
-    st.plotly_chart(fig_pie)
-
-
-import streamlit as st
-
-# Function to redirect to a goodbye message
-def redirect_to_goodbye():
-    st.write("Thank you for using the app! You can close this tab now.")
-    st.stop()  # Stops further execution of the script
-
-# Custom exit button in sidebar
-if st.sidebar.button("Exit Dashboard"):
-    redirect_to_goodbye()
-  
-#Sidebar option for selecting the number of years to display
-num_years = st.sidebar.slider("Select Number of Release Years to Display:", min_value=1, max_value=20, value=11)
-
-# Checking most releases by year
-release_year = df_copy["release_year"].value_counts().head(num_years)
-
-# Create a Plotly bar chart
-fig = px.bar(
-    x=release_year.index,
-    y=release_year.values,
-    labels={'x': 'Release Year', 'y': 'Frequency of Release Year'},
-    title='Most Number of Releases by Year',
-    color=release_year.index,
-    color_continuous_scale='Viridis'
-)
-
-# Update layout for better aesthetics
-fig.update_layout(
-    xaxis_title='Release Year',
-    yaxis_title='Frequency of Release Year',
-    title_font=dict(size=20, family='Arial, sans-serif', color='black'),
-    xaxis_tickangle=-45,
-)
-
-# Display the Plotly figure in Streamlit
-st.plotly_chart(fig)
-
-# Sidebar option for selecting the number of countries to display
-num_countries = st.sidebar.slider("Select Number of Countries to Display:", min_value=1, max_value=20, value=10)
-
-# Counting releases by country
-country_release_count = df_copy['country'].value_counts().head(num_countries)
-
-# Create a Plotly bar chart for releases by country
-fig_country = px.bar(
-    x=country_release_count.index,
-    y=country_release_count.values,
-    labels={'x': 'Country', 'y': 'Number of Releases'},
-    title='Number of Releases by Country',
-    color=country_release_count.index,
-    color_continuous_scale='Blues'
-)
-
-# Update layout for better aesthetics
-fig_country.update_layout(
-    xaxis_title='Country',
-    yaxis_title='Number of Releases',
-    title_font=dict(size=20, family='Arial, sans-serif', color='black'),
-    xaxis_tickangle=-45,
-)
-
-# Display the Plotly figure in Streamlit
-st.plotly_chart(fig_country)
-
-# Optionally, you can create a line plot for releases over time by country
-# You can choose a specific country from the unique values in the country column
-selected_country = st.sidebar.selectbox("Select a Country:", df_copy['country'].unique())
-
-# Filter the DataFrame for the selected country
-country_data = df_copy[df_copy['country'] == selected_country]
-release_year_country = country_data['release_year'].value_counts().sort_index()
-
-# Create a Plotly line chart for the selected country's releases over the years
-fig_line = px.line(
-    x=release_year_country.index,
-    y=release_year_country.values,
-    labels={'x': 'Release Year', 'y': 'Number of Releases'},
-    title=f'Number of Releases in {selected_country} by Year'
-)
-
-# Update layout for better aesthetics
-fig_line.update_layout(
-    xaxis_title='Release Year',
-    yaxis_title='Number of Releases',
-    title_font=dict(size=20, family='Arial, sans-serif', color='black'),
-)
-
-# Display the line chart
-st.plotly_chart(fig_line)
-
-#Sidebar option for country selection
-selected_country = st.sidebar.selectbox("select country for top Directors:", df_copy["country"].unique())
-
-# Filter the dataframe based on the selected country
-filtered_data = df_copy[df_copy["country"] == selected_country]
-
-# Director Data Preparation
-director = filtered_data["director"].value_counts().reset_index()
-director.columns = ['Director', 'Count']  # Rename columns for clarity
-director = director.sort_values(by="Count", ascending=False).iloc[1:20]  # Top 10 directors
-
-# Create a Plotly bar chart for top directors
-fig_director = px.bar(
-    director,
-    x='Director',
-    y='Count',
-    labels={'Director': 'Director Name', 'Count': 'Count'},
-    title=f'Top 10 Directors on Netflix in {selected_country}',
-    color='Count',
-    color_continuous_scale='Viridis'
-)
-
-# Update layout for better aesthetics
-fig_director.update_layout(
-    xaxis_title='Director Name',
-    yaxis_title='Count',
-    title_font=dict(size=20, family='Arial, sans-serif', color='black'),
-    xaxis_tickangle=-45,
-)
-
-# Display the Plotly figure in Streamlit
-st.plotly_chart(fig_director)
-
-
-# Data Preparation
-movies_director = df_copy[df_copy["type"] == "Movie"]["director"]
-tv_show_director = df_copy[df_copy["type"] == "TV Show"]["director"]
-
-# Sidebar option to select between Movie and TV Show
-selected_type = st.sidebar.selectbox("Select Type for Wordcloud:", ["Movie", "TV Show"])
-
-
-# Assuming you have already defined movies_director and tv_show_director
-movies_director = df_copy[df_copy['type'] == 'Movie']['director'].dropna().tolist()
-tv_show_director = df_copy[df_copy['type'] == 'TV Show']['director'].dropna().tolist()
-
-if selected_type == "Movie":
-    wordcloud = WordCloud(width=800, height=400, background_color='black', colormap='viridis').generate(' '.join(movies_director))
-    st.header("WordCloud of Movie Directors")
-else:
-    wordcloud = WordCloud(width=800, height=400, background_color='black', colormap='viridis').generate(' '.join(tv_show_director))
-    st.header("WordCloud of TV Show Directors")
-
-# Plot WordCloud
-plt.figure(figsize=(10, 5))
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis('off')
-st.pyplot(plt)
-# Footer with custom message
-st.markdown("<h4 style='text-align: center; color: #B3B3B3;'>Created by Rajat Singh</h4>", unsafe_allow_html=True)
+st.plotly_chart(fig_count)

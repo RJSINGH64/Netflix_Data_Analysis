@@ -30,8 +30,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+image_path=os.path.join(os.getcwd(), 'pngwing.com.png')
 # Load Netflix logo
-logo = Image.open(r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\pngwing.com.png")
+logo = Image.open(image_path)
 
 # Sidebar: Netflix logo
 st.sidebar.image(logo, use_column_width=True)

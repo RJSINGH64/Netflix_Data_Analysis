@@ -162,3 +162,8 @@ cython_debug/
 #.idea/
 artifacts
 logs
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

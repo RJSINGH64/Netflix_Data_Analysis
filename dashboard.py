@@ -9,10 +9,12 @@ import plotly.express as px
 from wordcloud import WordCloud
 from PIL import Image
 import altair as alt
-
-# Load dataset
-df = pd.read_csv(r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\netflix_dataset.csv")
+import os
+# Load dataset with a relative path
+dataset_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
+df = pd.read_csv(dataset_path)
 df_copy = df.copy()
+
 
 # Set page configuration for title and layout
 st.set_page_config(page_title="Netflix Data Visualization Dashboard", layout="wide")

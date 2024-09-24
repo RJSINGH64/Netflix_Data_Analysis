@@ -11,11 +11,19 @@ from PIL import Image
 import altair as alt
 import os
 import pickle
-
+#from model_training import initiate_model_training
+import sys,os
 # Load dataset with a relative path
-dataset_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
-df = pd.read_csv(dataset_path)
+file_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
+df = pd.read_csv(file_path)
 df_copy = df.copy()
+
+#try:
+    #initiate_model_training() #triggering tarining pipeline
+
+#except Exception as e:
+   # print(e)
+
 
 # Set page configuration for title and layout
 st.set_page_config(
@@ -98,6 +106,10 @@ st.markdown("""
         <li>Movies dominate the Netflix library.</li>
         <li>Top genres include Drama, Comedy, and Documentary.</li>
         <li>The US, India, and the UK contribute the most content.</li>
+        <li>Asian countries like South Korea appear in this list, reflecting the global rise in popularity of Korean TV shows (K-dramas)..</li>
+        <li>The focus on international shows is visible, with countries like Japan and India producing many TV shows for Netflix’s global audience..</li>
+        <li>Documentaries and Crime TV Shows follow closely, indicating a growing trend in true crime and investigative series.</li>
+           
     </ul>
 """, unsafe_allow_html=True)
 
@@ -344,6 +356,7 @@ if selected_plot_type == "Country":
         )
         st.plotly_chart(fig_pie)
 
+st.markdown("<h2 style='color: black; font-weight: bold;'>Top 10 Countries </h2>", unsafe_allow_html=True)
 # Interactive Map for Countries with Pie Chart
 st.subheader(f"Map of Netflix {content_type} Content by Country")
 map_col = st.columns(1)  # Adjust column sizes as needed
@@ -559,6 +572,7 @@ else:
                           colormap='viridis').generate(' '.join(tv_show_director))
     st.header("WordCloud of TV Show Directors")
 
+st.markdown("<h2 style='color:black; font-weight: bold;'>Directors Wordcloud</h2>", unsafe_allow_html=True)
 # Plot WordCloud
 plt.figure(figsize=(10, 5))
 plt.imshow(wordcloud, interpolation='bilinear')

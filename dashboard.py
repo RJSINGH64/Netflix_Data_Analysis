@@ -10,14 +10,16 @@ from wordcloud import WordCloud
 from PIL import Image
 import altair as alt
 import os
+import pickle
+
 # Load dataset with a relative path
 dataset_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
 df = pd.read_csv(dataset_path)
 df_copy = df.copy()
 
-
 # Set page configuration for title and layout
-st.set_page_config(page_title="Netflix Data Visualization Dashboard", layout="wide")
+st.set_page_config(
+    page_title="Netflix Data Visualization Dashboard", layout="wide")
 
 st.markdown(
     """
@@ -30,7 +32,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-image_path=os.path.join(os.getcwd(), 'pngwing.com.png')
+image_path = os.path.join(os.getcwd(), 'pngwing.com.png')
 # Load Netflix logo
 logo = Image.open(image_path)
 
@@ -38,27 +40,19 @@ logo = Image.open(image_path)
 st.sidebar.image(logo, use_column_width=True)
 
 # Sidebar: Add a title with Netflix Red color
-st.sidebar.markdown("<h2 style='color: #E50914;'>Explore Netflix Data</h2>", unsafe_allow_html=True)
+st.sidebar.markdown(
+    "<h2 style='color: #E50914;'>Explore Netflix Data</h2>", unsafe_allow_html=True)
 
 # Sidebar: Add a button or interaction element in Netflix red
 if st.sidebar.button('Analyze Content'):
     st.sidebar.write("Analysis started!")
 
 # Main Title
-st.markdown("<h1 style='text-align: center; color: #E50914;'>Netflix Data Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #E50914;'>Netflix Data Dashboard</h1>",
+            unsafe_allow_html=True)
 
 # Divider line with custom color
 st.markdown("<hr style='border: 2px solid #E50914;'>", unsafe_allow_html=True)
-
-# Sample Text Section in Netflix Theme
-st.markdown("""
-    <h3 style='color: #FFFFFF;'>Key Insights</h3>
-    <ul style='color: #B3B3B3;'>
-        <li>Movies dominate the Netflix library.</li>
-        <li>Top genres include Drama, Comedy, and Documentary.</li>
-        <li>The US, India, and the UK contribute the most content.</li>
-    </ul>
-""", unsafe_allow_html=True)
 
 # Custom CSS for dark background and specific text colors
 st.markdown(
@@ -95,13 +89,117 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# Sidebar option to show the dataset
+show_data = st.sidebar.checkbox("Show Dataset")
+st.markdown("""
+    <h3 style='color: #FFFFFF;'>Key Insights</h3>
+    <ul style='color: #B3B3B3;'>
+        <li>Movies dominate the Netflix library.</li>
+        <li>Top genres include Drama, Comedy, and Documentary.</li>
+        <li>The US, India, and the UK contribute the most content.</li>
+    </ul>
+""", unsafe_allow_html=True)
+
+
+# Display the dataset if the checkbox is selected
+if show_data:
+    # Custom title with red color and bold
+    st.markdown("<h2 style='color: #E50914; font-weight: bold;'>Netflix Dataset</h2>", unsafe_allow_html=True)
+    st.dataframe(df_copy)  # Display the entire DataFrame
+
+# Load the trained model, scaler, and encoders
+with open("trained_model.pkl", 'rb') as file:
+    model_rf = pickle.load(file)
+
+with open("scaler.pkl", 'rb') as file:
+    scaler = pickle.load(file)
+
+with open("label_encoder.pkl", 'rb') as file:
+    label_encoders = pickle.load(file)
+
+# Load feature names
+with open("feature_names.pkl", 'rb') as file:
+    feature_names = pickle.load(file)
+
+
+# Load the original dataset to get unique values for dropdowns
+df = pd.read_csv("netflix_dataset.csv")
+
+# Unique values for dropdowns
+countries = df["country"].unique().tolist()
+ratings = df["rating"].unique().tolist()
+directors = df["director"].unique().tolist()
+genres = df['listed_in'].str.get_dummies(sep=', ').columns.tolist()
+
+
+
+
+# Input fields for the prediction
+
+st.markdown("<h2 style='color: #E50914; font-weight: bold;'>Netflix Show type Prediction</h2>", unsafe_allow_html=True)
+
+# Dropdowns for inputs
+selected_country = st.selectbox("Select Country", countries)
+selected_rating = st.selectbox("Select Rating", ratings)
+selected_director = st.selectbox("Select Director", directors)
+
+# Genre selection as multiple choice (can select multiple genres)
+selected_genres = st.multiselect("Select Genres", genres)
+
+# Duration input
+duration = st.number_input("Duration (minutes)", min_value=0, value=30)
+
+# Prepare input data for the model
+if st.button("Predict"):
+    # Prepare the input data as a dictionary
+    input_data = {
+        "country": label_encoders["country"].transform([selected_country])[0],
+        "rating": label_encoders["rating"].transform([selected_rating])[0],
+        "duration": duration,
+    }
+
+    # One-hot encode the selected genres
+    for genre in genres:
+        input_data[genre] = 1 if genre in selected_genres else 0
+
+    # One-hot encode the selected director
+    for director in directors:
+        input_data[f"director_{director}"] = 1 if director == selected_director else 0
+
+    # Convert input data to DataFrame
+    input_df = pd.DataFrame(input_data, index=[0])
+
+    # Ensure all feature names are included, filling missing ones with 0
+    for feature in feature_names:
+        if feature not in input_df.columns:
+            input_df[feature] = 0
+            
+    # Reorder the DataFrame to match the training feature order
+    input_df = input_df[feature_names]
+
+    # Standardize the features
+    input_scaled = scaler.transform(input_df)
+
+    # Make prediction
+    prediction = model_rf.predict(input_scaled)
+    
+    # Decode the prediction
+    prediction_label = label_encoders["type"].inverse_transform(prediction)[0]
+
+    # Display the result
+    st.success(f"The predicted type is: **{prediction_label}**")
+
 # Your Streamlit app content goes here
-content_type = st.sidebar.selectbox("Select Content Type:", ["Movies", "TV Shows"])
-selected_plot_type = st.sidebar.selectbox("Select Plot Type:", ["Top Genres", "Content Type Distribution" , "Country"])
+content_type = st.sidebar.selectbox(
+    "Select Content Type:", ["Movies", "TV Shows"])
+selected_plot_type = st.sidebar.selectbox(
+    "Select Plot Type:", ["Top Genres", "Content Type Distribution", "Country"])
 
 # Data preparation
 show_type = df_copy["type"].value_counts()
-top_genres = df_copy["listed_in"].str.split(',').explode().value_counts().head(10)
+top_genres = df_copy["listed_in"].str.split(
+    ',').explode().value_counts().head(10)
 country = df_copy["country"].value_counts()
 
 # Sample data preparation for country distribution
@@ -112,6 +210,8 @@ country_data = {
 df_country = pd.DataFrame(country_data)
 
 # Function to get latitude and longitude
+
+
 def get_latitude(country):
     latitudes = {
         "United States": 37.0902,
@@ -124,6 +224,7 @@ def get_latitude(country):
         "Spain": 40.4637,
     }
     return latitudes.get(country, 0)
+
 
 def get_longitude(country):
     longitudes = {
@@ -145,10 +246,12 @@ else:
     df_filtered = df_copy[df_copy['type'] == 'TV Show']
 
 if selected_plot_type == "Top Genres":
-    top_genres = df_filtered['listed_in'].str.split(',').explode().value_counts().head(10)
+    top_genres = df_filtered['listed_in'].str.split(
+        ',').explode().value_counts().head(10)
 
     st.subheader(f"Top Genres for {content_type}")
-    df_genres = pd.DataFrame({'Genre': top_genres.index, 'Frequency': top_genres.values})
+    df_genres = pd.DataFrame(
+        {'Genre': top_genres.index, 'Frequency': top_genres.values})
 
     fig_top_genres = alt.Chart(df_genres).mark_bar().encode(
         x=alt.X('Frequency:Q', title='Frequency'),
@@ -172,7 +275,8 @@ elif selected_plot_type == "Content Type Distribution":
     col1, col2 = st.columns(2)
 
     with col1:
-        df_content_type = pd.DataFrame({'Type': show_type.index, 'Frequency': show_type.values})
+        df_content_type = pd.DataFrame(
+            {'Type': show_type.index, 'Frequency': show_type.values})
         fig_content_type = alt.Chart(df_content_type).mark_bar().encode(
             x=alt.X('Type:N', title='Type'),
             y=alt.Y('Frequency:Q', title='Frequency'),
@@ -190,7 +294,7 @@ elif selected_plot_type == "Content Type Distribution":
             labelFontSize=12,
             titleFontSize=12
         )
-        
+
         st.altair_chart(fig_content_type, use_container_width=True)
 
 
@@ -216,7 +320,8 @@ if selected_plot_type == "Country":
             font=dict(color='black'),
             xaxis_title='Countries',
             yaxis_title='Frequency',
-            title_font=dict(size=16, family='Arial, sans-serif', color='black'),
+            title_font=dict(
+                size=16, family='Arial, sans-serif', color='black'),
             xaxis_tickangle=-45
         )
         st.plotly_chart(fig_country)
@@ -241,15 +346,17 @@ if selected_plot_type == "Country":
 
 # Interactive Map for Countries with Pie Chart
 st.subheader(f"Map of Netflix {content_type} Content by Country")
-map_col= st.columns(1)  # Adjust column sizes as needed
+map_col = st.columns(1)  # Adjust column sizes as needed
 
 with map_col[0]:
-    m = folium.Map(location=[20.0, 0.0], zoom_start=2, tiles='CartoDB positron')
+    m = folium.Map(location=[20.0, 0.0], zoom_start=2,
+                   tiles='CartoDB positron')
     marker_cluster = MarkerCluster().add_to(m)
 
     for index, row in df_country.iterrows():
         folium.Marker(
-            location=[get_latitude(row['Country']), get_longitude(row['Country'])],
+            location=[get_latitude(row['Country']),
+                      get_longitude(row['Country'])],
             popup=f"<strong>{row['Country']}</strong><br>Percentage: {row['Percentage']}%",
             icon=folium.Icon(color='blue', icon='info-sign')
         ).add_to(marker_cluster)
@@ -298,19 +405,20 @@ with col6:
     st.plotly_chart(fig_pie)
 
 
-import streamlit as st
-
 # Function to redirect to a goodbye message
+
 def redirect_to_goodbye():
     st.write("Thank you for using the app! You can close this tab now.")
     st.stop()  # Stops further execution of the script
 
+
 # Custom exit button in sidebar
 if st.sidebar.button("Exit Dashboard"):
     redirect_to_goodbye()
-  
-#Sidebar option for selecting the number of years to display
-num_years = st.sidebar.slider("Select Number of Release Years to Display:", min_value=1, max_value=20, value=11)
+
+# Sidebar option for selecting the number of years to display
+num_years = st.sidebar.slider(
+    "Select Number of Release Years to Display:", min_value=1, max_value=20, value=11)
 
 # Checking most releases by year
 release_year = df_copy["release_year"].value_counts().head(num_years)
@@ -337,7 +445,8 @@ fig.update_layout(
 st.plotly_chart(fig)
 
 # Sidebar option for selecting the number of countries to display
-num_countries = st.sidebar.slider("Select Number of Countries to Display:", min_value=1, max_value=20, value=10)
+num_countries = st.sidebar.slider(
+    "Select Number of Countries to Display:", min_value=1, max_value=20, value=10)
 
 # Counting releases by country
 country_release_count = df_copy['country'].value_counts().head(num_countries)
@@ -365,7 +474,8 @@ st.plotly_chart(fig_country)
 
 # Optionally, you can create a line plot for releases over time by country
 # You can choose a specific country from the unique values in the country column
-selected_country = st.sidebar.selectbox("Select a Country:", df_copy['country'].unique())
+selected_country = st.sidebar.selectbox(
+    "Select a Country:", df_copy['country'].unique())
 
 # Filter the DataFrame for the selected country
 country_data = df_copy[df_copy['country'] == selected_country]
@@ -389,8 +499,9 @@ fig_line.update_layout(
 # Display the line chart
 st.plotly_chart(fig_line)
 
-#Sidebar option for country selection
-selected_country = st.sidebar.selectbox("select country for top Directors:", df_copy["country"].unique())
+# Sidebar option for country selection
+selected_country = st.sidebar.selectbox(
+    "select country for top Directors:", df_copy["country"].unique())
 
 # Filter the dataframe based on the selected country
 filtered_data = df_copy[df_copy["country"] == selected_country]
@@ -398,7 +509,8 @@ filtered_data = df_copy[df_copy["country"] == selected_country]
 # Director Data Preparation
 director = filtered_data["director"].value_counts().reset_index()
 director.columns = ['Director', 'Count']  # Rename columns for clarity
-director = director.sort_values(by="Count", ascending=False).iloc[1:20]  # Top 10 directors
+director = director.sort_values(
+    by="Count", ascending=False).iloc[1:20]  # Top 10 directors
 
 # Create a Plotly bar chart for top directors
 fig_director = px.bar(
@@ -428,18 +540,23 @@ movies_director = df_copy[df_copy["type"] == "Movie"]["director"]
 tv_show_director = df_copy[df_copy["type"] == "TV Show"]["director"]
 
 # Sidebar option to select between Movie and TV Show
-selected_type = st.sidebar.selectbox("Select Type for Wordcloud:", ["Movie", "TV Show"])
+selected_type = st.sidebar.selectbox(
+    "Select Type for Wordcloud:", ["Movie", "TV Show"])
 
 
 # Assuming you have already defined movies_director and tv_show_director
-movies_director = df_copy[df_copy['type'] == 'Movie']['director'].dropna().tolist()
-tv_show_director = df_copy[df_copy['type'] == 'TV Show']['director'].dropna().tolist()
+movies_director = df_copy[df_copy['type'] ==
+                          'Movie']['director'].dropna().tolist()
+tv_show_director = df_copy[df_copy['type'] ==
+                           'TV Show']['director'].dropna().tolist()
 
 if selected_type == "Movie":
-    wordcloud = WordCloud(width=800, height=400, background_color='black', colormap='viridis').generate(' '.join(movies_director))
+    wordcloud = WordCloud(width=800, height=400, background_color='black',
+                          colormap='viridis').generate(' '.join(movies_director))
     st.header("WordCloud of Movie Directors")
 else:
-    wordcloud = WordCloud(width=800, height=400, background_color='black', colormap='viridis').generate(' '.join(tv_show_director))
+    wordcloud = WordCloud(width=800, height=400, background_color='black',
+                          colormap='viridis').generate(' '.join(tv_show_director))
     st.header("WordCloud of TV Show Directors")
 
 # Plot WordCloud
@@ -448,4 +565,5 @@ plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis('off')
 st.pyplot(plt)
 # Footer with custom message
-st.markdown("<h4 style='text-align: center; color: #B3B3B3;'>Created by Rajat Singh</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center; color: #B3B3B3;'>Created by Rajat Singh</h4>",
+            unsafe_allow_html=True)

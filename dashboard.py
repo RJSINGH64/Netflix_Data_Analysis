@@ -9,9 +9,10 @@ import plotly.express as px
 from wordcloud import WordCloud
 from PIL import Image
 import altair as alt
+import os
 import pickle
-#from model_training import initiate_model_training
-import sys,os
+
+
 # Load dataset with a relative path
 file_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
 df = pd.read_csv(file_path)
@@ -28,16 +29,6 @@ df_copy = df.copy()
 st.set_page_config(
     page_title="Netflix Data Visualization Dashboard", layout="wide")
 
-st.markdown(
-    """
-    <style>
-    .st-folium {
-        margin-bottom: 0;  /* Remove margin below the map */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 image_path = os.path.join(os.getcwd(), 'pngwing.com.png')
 # Load Netflix logo
@@ -145,6 +136,7 @@ genres = df['listed_in'].str.get_dummies(sep=', ').columns.tolist()
 
 
 
+
 # Input fields for the prediction
 
 st.markdown("<h2 style='color: #E50914; font-weight: bold;'>Netflix Show type Prediction</h2>", unsafe_allow_html=True)
@@ -220,6 +212,7 @@ country_data = {
 df_country = pd.DataFrame(country_data)
 
 # Function to get latitude and longitude
+
 
 def get_latitude(country):
     latitudes = {
@@ -372,6 +365,16 @@ with map_col[0]:
         ).add_to(marker_cluster)
 
     st_folium(m, width=900, height=400)  # Adjusted width for better fit
+st.markdown(
+    """
+    <style>
+    .st-folium {
+        margin-bottom: 0;  /* Remove margin below the map */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Count plot for Ratings using Plotly
 rating = df_copy['rating'].value_counts().reset_index()

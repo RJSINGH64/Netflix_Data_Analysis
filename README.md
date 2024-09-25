@@ -1,41 +1,19 @@
-# Netflix_Data_Analysis
-**Netflix Data Analysis and Data Visualization Project**
+# Unified Mentor - Netflix Data Visualization and Prediction
 
-***Unified Mentor Internship*** 
+Welcome to the **Unified Mentor** project! This project focuses on Netflix data visualization and prediction to determine whether a title is a **movie** or a **TV show**.
 
-```
-**conda environments 3.9**
-```
+## Project Overview
 
-```
-**main project Package src**
-```
+In this project, we explore Netflix's dataset, perform data visualization, and build a predictive model to classify titles.
 
-```
-**all project pipeline are inside src/components**
-```
+## Project Structure
 
-```
-**.env used for sensitive information such as mongo url and cloud**
-```
+- **Dashboard App**: The main application interface is built using Streamlit and is located in `dashboard.py`.
+  
+- **Exploratory Data Analysis (EDA)**: All EDA is done in `research.ipynb`.
 
-```
-**data_dump.py used for dumping data inside mongodb**
-```
+- **Model Training**: The model is trained and stored in the `model_training.py`.
 
-```
-**all required modules are inside requirements.txt which will be used for installing all libraries**
-```
+## Data Storage
 
-```
-**command for installing all libraries :-  pip install -r requirements.txt**
-```
-
-```
-**requirements.txt has to be inside a current project directory  : you can use " cd ." command dont use quotes . represent current directory**
-```
-
-
-
-
-
+Data is dumped into **MongoDB** using a `.env` file to manage credentials.

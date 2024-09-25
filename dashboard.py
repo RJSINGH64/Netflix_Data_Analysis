@@ -9,7 +9,6 @@ import plotly.express as px
 from wordcloud import WordCloud
 from PIL import Image
 import altair as alt
-import os
 import pickle
 #from model_training import initiate_model_training
 import sys,os
@@ -146,7 +145,6 @@ genres = df['listed_in'].str.get_dummies(sep=', ').columns.tolist()
 
 
 
-
 # Input fields for the prediction
 
 st.markdown("<h2 style='color: #E50914; font-weight: bold;'>Netflix Show type Prediction</h2>", unsafe_allow_html=True)
@@ -222,7 +220,6 @@ country_data = {
 df_country = pd.DataFrame(country_data)
 
 # Function to get latitude and longitude
-
 
 def get_latitude(country):
     latitudes = {

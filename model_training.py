@@ -8,9 +8,9 @@ from imblearn.over_sampling import SMOTE
 import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+import os , sys
 
-file_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
+file_path = os.path.join(os.getcwd() , "netflix_dataset.csv")
 df = pd.read_csv(file_path)
 
 def plot_confusion_matrix(y_true, y_pred):
@@ -91,8 +91,10 @@ def initiate_model_training(df):
     # Plot confusion matrix
     plot_confusion_matrix(y_test, rf_predict)
 
-if __name__ == "__main__":
+
+if __name__=="__main__":
+
     try:
-        initiate_model_training(df)  # Use the DataFrame for training
+        initiate_model_training(df)
     except Exception as e:
-        print(e)
+        print(e)    

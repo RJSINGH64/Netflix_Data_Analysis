@@ -7,7 +7,7 @@ from config import mongo_client
 database_name = "Ott"
 collection_name = "Netflix"
 #giving dataset file path
-file_path = r"E:\PYTHON PROJECTS\V-S Code Projects\Netflix_Data_Analysis\netflix_dataset.csv"
+file_path = os.path.join(os.getcwd() , "netflix_dataset.csv")
 
 if __name__=="__main__":
    #reading dataset as dataframe

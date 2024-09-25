@@ -125,9 +125,6 @@ with open("feature_names.pkl", 'rb') as file:
     feature_names = pickle.load(file)
 
 
-# Load the original dataset to get unique values for dropdowns
-df = pd.read_csv("netflix_dataset.csv")
-
 # Unique values for dropdowns
 countries = df["country"].unique().tolist()
 ratings = df["rating"].unique().tolist()

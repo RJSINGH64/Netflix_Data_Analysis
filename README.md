@@ -2,6 +2,8 @@
 
 Welcome to the **Unified Mentor** project! This project focuses on Netflix data visualization and prediction to determine whether a title is a **movie** or a **TV show**.
 
+**You can watch Project Demo for better understanding**
+
 ## Project Overview
 
 In this project, we explore Netflix's dataset, perform data visualization, and build a predictive model to classify titles.

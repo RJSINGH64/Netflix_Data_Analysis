@@ -132,8 +132,6 @@ directors = df["director"].unique().tolist()
 genres = df['listed_in'].str.get_dummies(sep=', ').columns.tolist()
 
 
-
-
 # Input fields for the prediction
 
 st.markdown("<h2 style='color: #E50914; font-weight: bold;'>Netflix Show type Prediction</h2>", unsafe_allow_html=True)

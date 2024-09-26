@@ -91,10 +91,10 @@ def initiate_model_training(df):
     # Plot confusion matrix
     plot_confusion_matrix(y_test, rf_predict)
 
-
 if __name__=="__main__":
 
     try:
         initiate_model_training(df)
+
     except Exception as e:
         print(e)    

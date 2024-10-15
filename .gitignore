@@ -167,3 +167,5 @@ logs
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+netflix.pem
+cd

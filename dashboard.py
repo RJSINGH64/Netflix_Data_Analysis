@@ -5,14 +5,13 @@ import streamlit as st
 import folium
 import numpy as np
 from streamlit_folium import st_folium
-from model_training import initiate_model_training
 from folium.plugins import MarkerCluster
 import plotly.express as px
 from wordcloud import WordCloud
 from PIL import Image
 import altair as alt
 import os
-import pickle
+import dill 
 
 
 
@@ -113,18 +112,17 @@ if show_data:
     st.dataframe(df_copy)  # Display the entire DataFrame
 
 # Load the trained model, scaler, and encoders
-with open("trained_model.pkl", 'rb') as file:
-    model_rf = pickle.load(file)
+with open("trained_model.dill", 'rb') as file:
+    model_rf = dill.load(file)
 
-with open("scaler.pkl", 'rb') as file:
-    scaler = pickle.load(file)
+with open("scaler.dill", 'rb') as file:
+    scaler = dill.load(file)
 
-with open("label_encoder.pkl", 'rb') as file:
-    label_encoders = pickle.load(file)
+with open("label_encoder.dill", 'rb') as file:
+    label_encoders = dill.load(file)
 
-# Load feature names
-with open("feature_names.pkl", 'rb') as file:
-    feature_names = pickle.load(file)
+with open("feature_names.dill", 'rb') as file:
+    feature_names = dill.load(file)
 
 
 # Unique values for dropdowns

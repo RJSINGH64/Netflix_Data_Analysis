@@ -5,10 +5,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from imblearn.over_sampling import SMOTE
-import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os , sys
+import dill 
 
 file_path = os.path.join(os.getcwd() , "netflix_dataset.csv")
 df = pd.read_csv(file_path)
@@ -70,18 +70,19 @@ def initiate_model_training(df):
     model_rf = RandomForestClassifier(random_state=42)
     model_rf.fit(X_train, y_train)
 
-    # Save the trained model, scaler, encoders, and feature names
-    with open("trained_model.pkl", 'wb') as file:
-        pickle.dump(model_rf, file)
-    with open("scaler.pkl", 'wb') as file:
-        pickle.dump(scaler, file)
-    with open("label_encoder.pkl", 'wb') as file:
-        pickle.dump(label_encoders, file)
+    with open("trained_model.dill", 'wb') as file:
+        dill.dump(model_rf, file)
+
+    with open("scaler.dill", 'wb') as file:
+        dill.dump(scaler, file)
+
+    with open("label_encoder.dill", 'wb') as file:
+        dill.dump(label_encoders, file)
 
     # Save feature names
     feature_names = X.columns.tolist()
-    with open("feature_names.pkl", 'wb') as file:
-        pickle.dump(feature_names, file)
+    with open("feature_names.dill", 'wb') as file:
+        dill.dump(feature_names, file)
 
     # Make predictions and evaluate the model
     rf_predict = model_rf.predict(X_test)
@@ -91,3 +92,12 @@ def initiate_model_training(df):
 
     # Plot confusion matrix
     plot_confusion_matrix(y_test, rf_predict)
+
+
+if __name__=="__main__"   :
+
+
+    try:
+        initiate_model_training(df)    
+    except Exception as e:
+        print(e) 

@@ -20,6 +20,7 @@ def plot_confusion_matrix(y_true, y_pred):
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title('Confusion Matrix')
+    plt.savefig("model_confusion_matrix.png")
     plt.show()
 
 def initiate_model_training(df):
@@ -90,11 +91,3 @@ def initiate_model_training(df):
 
     # Plot confusion matrix
     plot_confusion_matrix(y_test, rf_predict)
-
-if __name__=="__main__":
-
-    try:
-        initiate_model_training(df)
-
-    except Exception as e:
-        print(e)    

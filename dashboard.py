@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 import folium
+import numpy as np
 from streamlit_folium import st_folium
+from model_training import initiate_model_training
 from folium.plugins import MarkerCluster
 import plotly.express as px
 from wordcloud import WordCloud
@@ -13,16 +15,17 @@ import os
 import pickle
 
 
+
 # Load dataset with a relative path
 file_path = os.path.join(os.getcwd(), 'netflix_dataset.csv')
 df = pd.read_csv(file_path)
 df_copy = df.copy()
 
 #try:
-    #initiate_model_training() #triggering tarining pipeline
+    #initiate_model_training(df=df_copy) #triggering tarining pipeline
 
 #except Exception as e:
-   # print(e)
+     #print(e)
 
 
 # Set page configuration for title and layout
@@ -30,7 +33,7 @@ st.set_page_config(
     page_title="Netflix Data Visualization Dashboard", layout="wide")
 
 
-image_path = os.path.join(os.getcwd(), 'pngwing.com.png')
+image_path = os.path.join(os.getcwd(), 'Netflix_Logo.png')
 # Load Netflix logo
 logo = Image.open(image_path)
 
@@ -40,7 +43,6 @@ st.sidebar.image(logo, use_column_width=True)
 # Sidebar: Add a title with Netflix Red color
 st.sidebar.markdown(
     "<h2 style='color: #E50914;'>Explore Netflix Data</h2>", unsafe_allow_html=True)
-
 # Sidebar: Add a button or interaction element in Netflix red
 if st.sidebar.button('Analyze Content'):
     st.sidebar.write("Analysis started!")

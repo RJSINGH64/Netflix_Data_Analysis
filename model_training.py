@@ -61,20 +61,12 @@ def initiate_model_training(df):
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=42)
 
-    # Scale features
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
-
     # Train Random Forest model
     model_rf = RandomForestClassifier(random_state=42)
     model_rf.fit(X_train, y_train)
 
     with open("trained_model.dill", 'wb') as file:
         dill.dump(model_rf, file)
-
-    with open("scaler.dill", 'wb') as file:
-        dill.dump(scaler, file)
 
     with open("label_encoder.dill", 'wb') as file:
         dill.dump(label_encoders, file)

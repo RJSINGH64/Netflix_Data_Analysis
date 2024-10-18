@@ -115,9 +115,6 @@ if show_data:
 with open("trained_model.dill", 'rb') as file:
     model_rf = dill.load(file)
 
-with open("scaler.dill", 'rb') as file:
-    scaler = dill.load(file)
-
 with open("label_encoder.dill", 'rb') as file:
     label_encoders = dill.load(file)
 
@@ -175,11 +172,8 @@ if st.button("Predict"):
     # Reorder the DataFrame to match the training feature order
     input_df = input_df[feature_names]
 
-    # Standardize the features
-    input_scaled = scaler.transform(input_df)
-
     # Make prediction
-    prediction = model_rf.predict(input_scaled)
+    prediction = model_rf.predict(input_df)
     
     # Decode the prediction
     prediction_label = label_encoders["type"].inverse_transform(prediction)[0]

@@ -10,12 +10,12 @@ In this project, we explore Netflix's dataset, perform data visualization, and b
 
 ## Project Structure
 
-- **Model Training**: The model is trained and stored in the `model_training.py`. `CMD`  :   `python model_training.py`.
-
-- **Dashboard App**: The main application interface is built using Streamlit and is located in `dashboard.py`. `CMD` :  `streamlit run dashboard.py`
-  
 - **Exploratory Data Analysis (EDA)**: All EDA is done in `research.ipynb`.
 
+- **Model Training**: The model is trained and stored in the `model_training.py`. **Step 1**  `CMD`  :   `python model_training.py`.
+
+- **Dashboard App**: The main application interface is built using Streamlit and is located in `dashboard.py`. **Step 2** `CMD` :  `streamlit run dashboard.py`
+  
 ## Data Storage
 
 Data is dumped into **MongoDB** using a `.env` file to manage credentials.

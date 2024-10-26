@@ -63,10 +63,10 @@ def initiate_model_training(df):
     X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=42)
 
     
-    param_grid={'subsample': 0.5, 'n_estimators': np.int64(150), 'max_depth': 15, 'learning_rate': 0.1, 'gamma': 0.3, 'colsample_bytree': 0.75}
+    best_param_={'subsample': 0.5, 'n_estimators': np.int64(150), 'max_depth': 15, 'learning_rate': 0.1, 'gamma': 0.3, 'colsample_bytree': 0.75}
     
     # Train Random Forest model
-    model_xgb = XGBClassifier(random_state=42 , param_grid=param_grid)
+    model_xgb = XGBClassifier(**best_param_)
     model_xgb.fit(X_train, y_train)
 
     with open("trained_model.dill", 'wb') as file:

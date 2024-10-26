@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from imblearn.over_sampling import SMOTE
@@ -61,12 +62,15 @@ def initiate_model_training(df):
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.3, random_state=42)
 
+    
+    param_grid={'subsample': 0.5, 'n_estimators': np.int64(150), 'max_depth': 15, 'learning_rate': 0.1, 'gamma': 0.3, 'colsample_bytree': 0.75}
+    
     # Train Random Forest model
-    model_rf = RandomForestClassifier(random_state=42)
-    model_rf.fit(X_train, y_train)
+    model_xgb = XGBClassifier(random_state=42 , param_grid=param_grid)
+    model_xgb.fit(X_train, y_train)
 
     with open("trained_model.dill", 'wb') as file:
-        dill.dump(model_rf, file)
+        dill.dump(model_xgb, file)
 
     with open("label_encoder.dill", 'wb') as file:
         dill.dump(label_encoders, file)
@@ -77,7 +81,7 @@ def initiate_model_training(df):
         dill.dump(feature_names, file)
 
     # Make predictions and evaluate the model
-    rf_predict = model_rf.predict(X_test)
+    rf_predict = model_xgb.predict(X_test)
     print(f"Accuracy: {accuracy_score(y_test, rf_predict):.2f}")
     print("Classification Report:")
     print(classification_report(y_test, rf_predict))

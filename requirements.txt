@@ -1,13 +1,11 @@
 pymongo==4.2.0
 python-dotenv==0.21.0
-types-s3transfer==0.6.0.post4
 xgboost==1.6.2
 pandas
 numpy
 scikit-learn
 matplotlib
 seaborn
-Pillow
 streamlit
 streamlit-folium
 folium

@@ -1,4 +1,4 @@
-name: Netflix stramlit app
+name: Netflix Streamlit app
 
 on:
   push:
@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      
       - name: Install Utilities
         run: |
           sudo apt-get update
@@ -66,9 +67,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
     
+      - name: Ensure Docker is running
+        run: |
+          # Check if Docker is running and start it if necessary
+          if ! sudo systemctl is-active --quiet docker; then
+            echo "Docker is not running, starting Docker..."
+            sudo systemctl start docker
+          fi
+          sudo systemctl status docker  # Confirm Docker is running
+
       - name: Pull docker image
         run: |
-          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest || {
+            echo "Docker pull failed, attempting to restart Docker...";
+            sudo systemctl restart docker;
+            docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest;
+          }
   
       - name: Run Docker Image to serve users
         run: |

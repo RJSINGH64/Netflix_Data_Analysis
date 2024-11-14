@@ -1,12 +1,15 @@
-version: "2"
+version: "3.8"
 services:
- application:
+  application:
     image: ${IMAGE_NAME}
     container_name: netflix-app
+    build: .
     ports:
       - "8501:8501"
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
-      
+    volumes:
+      - .:/app
+    restart: unless-stopped

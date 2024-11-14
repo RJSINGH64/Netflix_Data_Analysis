@@ -1,4 +1,4 @@
-name: Streamlit Deployment Workflow
+name: Netflix stramlit app
 
 on:
   push:
@@ -13,10 +13,13 @@ jobs:
   build-and-push-ecr-image:
     name: Continuous Delivery
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      - name: Install Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -29,7 +32,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
     
-      - name: Build, Tag, and Push Docker Image to Amazon ECR
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
@@ -37,13 +41,13 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-  continuous-deployment:
+  Continuous-Deployment:
     needs: build-and-push-ecr-image
     runs-on: self-hosted
-
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
   
       - name: Configure AWS credentials
@@ -53,24 +57,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
   
+      - name: Install Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
+  
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
     
-      - name: Pull Docker Image
-        env:
-          ECR_URI: ${{ secrets.AWS_ECR_LOGIN_URI }}
-          REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
-          IMAGE_TAG: latest
+      - name: Pull docker image
         run: |
-          docker pull $ECR_URI/$REPOSITORY:$IMAGE_TAG
+          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
   
-      - name: Run Docker Image (Streamlit App) to Serve Users
-        env:
-          IMAGE_NAME: "${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest"
-          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          AWS_DEFAULT_REGION: "${{ secrets.AWS_REGION }}"
+      - name: Run Docker Image to serve users
         run: |
+          export IMAGE_NAME="${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest"
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          export AWS_DEFAULT_REGION="${{ secrets.AWS_REGION }}"
           docker compose up -d
 
       - name: Docker System Prune to Remove Old Images

@@ -1,46 +1,78 @@
-# .github/workflows/deploy.yml
-name: Deploy Streamlit App to AWS EC2
+name: Streamlit Deployment Workflow
 
 on:
   push:
     branches:
       - main
 
-jobs:
-  deploy:
-    # Run this workflow on the self-hosted EC2 runner
-    runs-on: self-hosted
+permissions:
+  id-token: write
+  contents: read
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      IMAGE_NAME: streamlit-app
+jobs:
+  build-and-push-ecr-image:
+    name: Continuous Delivery
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+    
+      - name: Build, Tag, and Push Docker Image to Amazon ECR
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Build and Push Docker Image to ECR
-        run: |
-          docker build -t $IMAGE_NAME .
-          docker tag $IMAGE_NAME:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
+  continuous-deployment:
+    needs: build-and-push-ecr-image
+    runs-on: self-hosted
 
-      - name: Deploy Docker Container
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+  
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+    
+      - name: Pull Docker Image
+        env:
+          ECR_URI: ${{ secrets.AWS_ECR_LOGIN_URI }}
+          REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
         run: |
-          # Stop and remove any existing container
-          sudo docker rm -f streamlit-container || true
-          
-          # Run a new container from the latest image
-          sudo docker run -d -p 8501:8501 --name streamlit-container ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest
+          docker pull $ECR_URI/$REPOSITORY:$IMAGE_TAG
+  
+      - name: Run Docker Image (Streamlit App) to Serve Users
+        env:
+          IMAGE_NAME: "${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION: "${{ secrets.AWS_REGION }}"
+        run: |
+          docker compose up -d
+
+      - name: Docker System Prune to Remove Old Images
+        run: |
+          docker system prune -f
